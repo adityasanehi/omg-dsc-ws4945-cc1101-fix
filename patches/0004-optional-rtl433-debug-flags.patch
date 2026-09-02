@@ -1,0 +1,20 @@
+# Optional: verbose rtl_433 debugging (RTL_DEBUG=1, RTL_VERBOSE=35 DSC, RAW_SIGNAL_DEBUG).
+# Useful when debugging other sensors; not required for the decode fix.
+diff --git a/environments.ini b/environments.ini
+index cf462a9..8b9b0bb 100644
+--- a/environments.ini
++++ b/environments.ini
+@@ -882,9 +882,10 @@ build_flags =
+   '-DZgatewayRTL_433="rtl_433"'
+   '-DZradioCC1101="CC1101"'
+ ; *** rtl_433_ESP Options ***
+-;  '-DRTL_DEBUG=4'             ; rtl_433 verbose mode
+-;  '-DRTL_VERBOSE=58'          ; LaCrosse TX141-Bv2, TX141TH-Bv2, TX141-Bv3, TX141W, TX145wsdth sensor
+-;  '-DRAW_SIGNAL_DEBUG=true'   ; display raw received messages
++  '-DRTL_DEBUG=1'              ; rtl_433 verbose mode  <-- WS4945 debug build (1 = reduce UART flood, DSC detail comes from RTL_VERBOSE=35)
++  '-DRTL_VERBOSE=35'           ; device #35 = DSC WS4945: force its decoder logs  <-- WS4945 debug build
++  '-DRAW_SIGNAL_DEBUG=true'    ; display raw received messages  <-- WS4945 debug build
++;  '-DRTL_ANALYZER=true'        ; per-signal timing analysis (OOMs on this board - see notes)
+ ;  '-DMEMORY_DEBUG=true'       ; display memory usage information
+   '-DDEMOD_DEBUG=true'         ; display signal debug info
+ ;  '-DMY_DEVICES=true'         ; subset of devices

@@ -1,0 +1,21 @@
+--- a/rtl_433_ESP/src/rtl_433_ESP.cpp
++++ b/rtl_433_ESP/src/rtl_433_ESP.cpp
+@@ -613,6 +613,18 @@
+               ((signalEnd - signalStart) >
+                MINIMUM_SIGNAL_LENGTH)) // Minimum signal length of MINIMUM_SIGNAL_LENGTH MS
+           {
++            // Record the real trailing gap after the last pulse. The ISR only
++            // writes a gap when the NEXT pulse arrives, so a packet ending in
++            // RZ 0-bits (silence) would lose those final bits (e.g. DSC WS4945
++            // open frames sliced to 47 bits and rejected). Upstream rtl_433
++            // captures this trailing silence and slicers pad trailing 0-bits
++            // from it (reset_limit / long_width).
++            // ponytail: cap at 100 ms; slicers bound padding via reset_limit.
++            unsigned long trailing = micros() - _lastChange;
++            if (trailing > 100000UL)
++              trailing = 100000UL;
++            if (trailing > 0)
++              _pulseTrains[_actualPulseTrain].gap[_nrpulses] = (int)trailing;
+             _pulseTrains[_actualPulseTrain].num_pulses = _nrpulses + 1;
+             _pulseTrains[_actualPulseTrain].signalDuration =
+                 signalEnd - signalStart;

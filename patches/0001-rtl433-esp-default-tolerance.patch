@@ -1,0 +1,12 @@
+--- a/rtl_433_ESP/src/rtl_433/pulse_slicer.c
++++ b/rtl_433_ESP/src/rtl_433/pulse_slicer.c
+@@ -77,6 +77,9 @@
+     return 0;
+   }
+ 
++  if (s_tolerance <= 0)
++    s_tolerance = s_long / 4; // default tolerance is +-25% of a bit period
++
+   // precision reciprocals
+   float f_short = device->short_width > 0.0 ? 1.0 / (device->short_width * samples_per_us) : 0;
+   float f_long = device->long_width > 0.0 ? 1.0 / (device->long_width * samples_per_us) : 0;

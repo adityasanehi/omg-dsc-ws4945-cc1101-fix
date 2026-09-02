@@ -1,0 +1,53 @@
+diff --git a/main/ZgatewayRTL_433.ino b/main/ZgatewayRTL_433.ino
+index f46686d..7769bf9 100644
+--- a/main/ZgatewayRTL_433.ino
++++ b/main/ZgatewayRTL_433.ino
+@@ -183,6 +183,17 @@ void launchRTL_433Discovery(bool overrideDiscovery) {
+                               "" //State Class
+               );
+             }
++          } else if (strcmp(parameters[i][0], "closed") == 0) {
++            // DSC / door-window contacts: binary sensor, ON when open (closed=0)
++            createDiscovery("binary_sensor", //set Type
++                            (char*)topic.c_str(), parameters[i][1], pdevice->uniqueId, //set state_topic,name,uniqueId
++                            "", parameters[i][3], (char*)value_template.c_str(), //set availability_topic,device_class,value_template,
++                            "0", "1", parameters[i][2], //set,payload_on,payload_off,unit_of_meas,
++                            0, //set  off_delay
++                            "", "", false, "", //set,payload_available,payload_not available   ,is a gateway entity, command topic
++                            (char*)idWoKey.c_str(), "", pdevice->modelName, (char*)idWoKey.c_str(), false, // device name, device manufacturer, device model, device ID, retain
++                            "" //State Class
++            );
+           } else if (strcmp(parameters[i][0], "tamper") == 0 || strcmp(parameters[i][0], "alarm") == 0 || strcmp(parameters[i][0], "motion") == 0) {
+             createDiscovery("binary_sensor", //set Type
+                             (char*)topic.c_str(), parameters[i][1], pdevice->uniqueId, //set state_topic,name,uniqueId
+@@ -277,7 +288,12 @@ void rtl_433_Callback(char* message) {
+     return;
+   }
+ 
++  // Dedup key: include state fields so a state CHANGE (e.g. DSC contact open vs
++  // closed, same id) is not swallowed by the duplicate filter within
++  // time_avoid_duplicate. id alone is not enough for binary-state sensors.
+   unsigned long MQTTvalue = (int)RFrtl_433_ESPdata["id"] + round((float)RFrtl_433_ESPdata["temperature_C"]);
++  if (RFrtl_433_ESPdata.containsKey("closed"))
++    MQTTvalue += ((int)RFrtl_433_ESPdata["closed"] + 1) * 100000;
+   String topic = subjectRTL_433toMQTT;
+   String model = RFrtl_433_ESPdata["model"];
+   String type = RFrtl_433_ESPdata["type"];
+diff --git a/main/config_RF.h b/main/config_RF.h
+index ec6bf90..4c1183d 100644
+--- a/main/config_RF.h
++++ b/main/config_RF.h
+@@ -82,11 +82,12 @@ struct RTL_433device {
+   bool isDisc;
+ };
+ 
+-const char parameters[51][4][24] = {
++const char parameters[52][4][24] = {
+     // RTL_433 key, name, unit, device_class
+     {"alarm", "Alarm", "", ""},
+     {"battery_mV", "Battery Voltage", "mV", "voltage"},
+     {"battery_ok", "Battery", "", "battery"},
++    {"closed", "Contact", "", "opening"},
+     {"co2_ppm", "Carbon Dioxide", "ppm", "carbon_dioxide"},
+     {"depth_cm", "Depth", "cm", "distance"},
+     {"estimated_pm10_0_ug_m3", "Estimated PM10", "μg/m³", "pm10"},
